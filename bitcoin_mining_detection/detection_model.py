@@ -29,9 +29,22 @@ monthdata=pd.concat([train_monthdata , test_monthdata], axis=0)
 
 data_profile=pd.read_csv(r"D:\1.paper\2022\挖矿\12.31\bitcoin_mining_detection\user_profile.csv")
 
-data_profile["ELEC_TYPE_NAME"] = data_profile["ELEC_TYPE_NAME"].map({"Urban residential":0, "Rural residential":1,"Non residential lighting":2,"Campus":3,"Industry":4,"Residential":5,"Non industry":6,"Commercial use":7,"Large industry":8,"Agricultural production":9})
-data_profile["VOLT_NAME"] = data_profile["VOLT_NAME"].map({"AC 220V":0, "AC 380V":1,"AC 10kV":2,"AC 6kV":3})
-data_profile["PRC_NAME"] = data_profile["PRC_NAME"].map({"<1kV":0,"<10kV,>1kV":1})
+data_profile["ELEC_TYPE_NAME"] = data_profile["ELEC_TYPE_NAME"].map({"Urban residential":0, 
+                                                                     "Rural residential":1,
+                                                                     "Non residential lighting":2,
+                                                                     "Campus":3,
+                                                                     "Industry":4,
+                                                                     "Residential":5,
+                                                                     "Non industry":6,
+                                                                     "Commercial use":7,
+                                                                     "Large industry":8,
+                                                                     "Agricultural production":9})
+data_profile["VOLT_NAME"] = data_profile["VOLT_NAME"].map({"AC 220V":0, 
+                                                           "AC 380V":1,
+                                                           "AC 10kV":2,
+                                                           "AC 6kV":3})
+data_profile["PRC_NAME"] = data_profile["PRC_NAME"].map({"<1kV":0,
+                                                         "<10kV,>1kV":1})
 
 del data_profile['SHIFT_NO']
 del data_profile['CANCEL_DATE']
@@ -43,7 +56,7 @@ del data_profile['TMP_DATE']
 train_daydata=daydata
 train_monthdata=monthdata
 train_profile=data_profile
-###################################################################
+###############################################################################################
 ##########################Traingdata preprocessing(daily power consumption)####################
 train_daydata= train_daydata[~(train_daydata['rq'] == '2021-01-05 00:00:00')]#The daily power consumption information on January 5 was deleted due to the loss of all users' information
 number_id=train_daydata['id'].value_counts()
@@ -103,7 +116,7 @@ train_profile=train_profile.merge(label_day_data,how='left',on='ID')
 
 
 
-###################################################################
+################################################################################################
 ##############################Traingdata preprocessing(monthly power consumption)###############
 
 train_monthdata_ID=train_monthdata.iloc[0::22,0]
@@ -134,11 +147,6 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
-from lightgbm import LGBMClassifier 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn import svm
-from sklearn.ensemble import GradientBoostingClassifier
-
 
 train_profile= train_profile.fillna(0)
 X_train=train_profile.iloc[:,1:]
@@ -194,7 +202,7 @@ def train_model (x,y):
          return clf
 
 
-########Imbalanced class#########
+########Imbalanced class by SMOTE##############
 #from imblearn.over_sampling import SMOTE, ADASYN
 
 from imblearn.over_sampling import BorderlineSMOTE,SMOTE
@@ -206,10 +214,8 @@ x_train, y_train = BorderlineSMOTE().fit_resample(x_train, y_train)
 #######################Training module############
 #start =time.time() 
 clf=train_model(x_train,y_train)
-
 y_pred=clf.predict(x_test)
 f1= f1_score(y_pred, y_test, average='macro')
-
 end = time.time()
 print('Running time: %s Seconds'%(end-start))
 print('F1: %s '%(f1))
